@@ -131,6 +131,33 @@
         .q-btn:hover { color: #16a085; padding-left: 20px; }
         .arrow { font-size: 14px; color: #94a3b8; transition: transform 0.3s; flex-shrink: 0; margin-left: 10px; }
         .q-btn:hover .arrow { transform: translateX(5px); color: #16a085; }
+
+        /* ✨ 新增：优雅的返回主页悬浮按钮样式 */
+        .back-home-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            color: #2c3e50;
+            border: 1px solid rgba(44, 62, 80, 0.2);
+            padding: 10px 22px;
+            font-size: 13px;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+            letter-spacing: 2px;
+            display: none;
+            z-index: 10000;
+            transition: all 0.3s ease;
+        }
+        .back-home-btn:hover {
+            background: #2c3e50;
+            color: #ffffff;
+            box-shadow: 0 8px 25px rgba(44,62,80,0.2);
+            transform: translateY(-2px);
+        }
          
         footer { margin-top: 50px; font-size: 12px; color: #4f5d73; font-weight: 500; letter-spacing: 2px; text-align: center; text-shadow: 0 1px 2px rgba(255,255,255,0.8); position: relative; z-index: 10; }
          
@@ -141,6 +168,8 @@
 </head>
 <body>
     <div class="ripple-canvas-container" id="rippleContainer"></div>
+
+    <button class="back-home-btn" id="backHomeBtn" onclick="returnToHome()">← 返回主目录</button>
 
     <header>
         <h1>柱子哥 · 生命关怀回信</h1>
@@ -212,6 +241,7 @@
             const scrollArea = document.getElementById('replyScrollArea'); 
             const expandBtn = document.getElementById('expandBtn');
             const switcher = document.getElementById('partSwitcher');
+            const backBtn = document.getElementById('backHomeBtn');
 
             player.src = 'video' + topicId + '_part1.mp4'; 
             wrapper.style.display = 'block'; 
@@ -223,17 +253,22 @@
 
             replyTitle.innerText = title; 
             textBox.style.display = 'block';
+            backBtn.style.display = 'block'; // 展现返回主目录按钮
             
             replyContent.innerText = "正在读取信件...";
             
-            // 精准匹配你的文件名：video1.txt, video2.txt ...
+            // 🛡️ 核心修复：强行使用并解析 UTF-8 编码，彻底阻断 GitHub / 浏览器解码错误导致的乱码
             fetch('video' + topicId + '.txt')
                 .then(response => {
                     if (!response.ok) throw new Error('未找到对应的文本文件');
-                    return response.text();
+                    return response.blob();
                 })
-                .then(data => {
-                    replyContent.innerText = data; 
+                .then(blob => {
+                    const reader = new FileReader();
+                    reader.onload = function() {
+                        replyContent.innerText = reader.result;
+                    };
+                    reader.readAsText(blob, 'UTF-8'); // 锁定解码器为 UTF-8
                 })
                 .catch(err => {
                     replyContent.innerText = "【文本暂未发布】\n对应课题的文字稿正在全力编辑整理中，稍后会同步更新至此。";
@@ -271,6 +306,32 @@
             } else {
                 scrollArea.classList.add('expanded'); expandBtn.innerText = "收起信笺";
             }
+        }
+
+        /* ✨ 新增：一键平滑返回初始主目录状态 */
+        function returnToHome() {
+            const player = document.getElementById('myPlayer');
+            const wrapper = document.getElementById('videoWrapper'); 
+            const textBox = document.getElementById('textReplyBox'); 
+            const switcher = document.getElementById('partSwitcher');
+            const backBtn = document.getElementById('backHomeBtn');
+
+            // 1. 停止播放并关车
+            player.pause();
+            player.src = '';
+
+            // 2. 优雅隐藏多媒体区块
+            wrapper.style.display = 'none';
+            textBox.style.display = 'none';
+            switcher.style.display = 'none';
+            backBtn.style.display = 'none';
+
+            // 3. 恢复初始优雅的 p5 背景
+            document.body.style.background = "url('p5.png') no-repeat center center fixed";
+            document.body.style.backgroundSize = "cover";
+
+            // 4. 平滑滚动回页面最顶部
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     </script>
 </body>
