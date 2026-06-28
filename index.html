@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>柱子哥 · 生命关怀回信</title>
+    <style>
+        body { 
+            font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", serif; 
+            background: url('p5.png') no-repeat center center fixed;
+            background-size: cover;
+            color: #2c3e50; 
+            min-height: 100vh; 
+            margin: 0; 
+            padding: 40px 20px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            box-sizing: border-box; 
+            line-height: 1.8;
+            position: relative;
+            transition: background 0.8s ease-in-out; 
+        }
+
+        .ripple-canvas-container {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 9999; pointer-events: none; 
+        }
+
+        .interactive-ripple {
+            position: absolute;
+            border: 1px solid rgba(132, 156, 168, 0.4); 
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            box-shadow: 0 0 8px rgba(255,255,255,0.4);
+            animation: mouseRippleMotion 1.5s ease-out forwards;
+        }
+
+        @keyframes mouseRippleMotion {
+            0% { width: 0px; height: 0px; opacity: 1; }
+            100% { width: 150px; height: 150px; opacity: 0; } 
+        }
+
+        header { text-align: center; margin-bottom: 35px; max-width: 600px; position: relative; z-index: 10; }
+        h1 { font-size: 24px; font-weight: 400; letter-spacing: 6px; color: #2c3e50; margin-bottom: 10px; text-shadow: 0 1px 1px rgba(255,255,255,0.6); }
+        .subtitle { font-size: 13px; letter-spacing: 3px; color: #4f5d73; font-style: italic; }
+         
+        .main-content { width: 100%; max-width: 750px; display: flex; flex-direction: column; gap: 25px; position: relative; z-index: 10; }
+        
+        .video-container { width: 100%; background: #000000; border-radius: 12px; overflow: hidden; box-shadow: 0 20px 40px rgba(15, 23, 42, 0.12); display: none; aspect-ratio: 16 / 9; }
+        video { width: 100%; height: 100%; display: block; }
+        
+        .part-switcher {
+            display: none;
+            justify-content: center;
+            gap: 15px;
+            margin-top: -10px;
+            margin-bottom: 5px;
+        }
+        .part-btn {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            border: 1px solid rgba(44, 62, 80, 0.2);
+            color: #2c3e50;
+            padding: 6px 20px;
+            font-size: 13px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 1px;
+        }
+        .part-btn.active {
+            background: #2c3e50;
+            color: #ffffff;
+            border-color: #2c3e50;
+            box-shadow: 0 4px 10px rgba(44, 62, 80, 0.15);
+        }
+        .part-btn:hover:not(.active) {
+            background: rgba(22, 160, 133, 0.1);
+            color: #16a085;
+            border-color: #16a085;
+        }
+
+        .text-reply-box { 
+            background: rgba(255, 255, 255, 0.7); 
+            backdrop-filter: blur(12px); 
+            -webkit-backdrop-filter: blur(12px);
+            padding: 35px; border-radius: 12px; 
+            box-shadow: 0 10px 30px rgba(44, 62, 80, 0.05); 
+            border: 1px solid rgba(255, 255, 255, 0.5); 
+            display: none; 
+        }
+        .reply-title { font-size: 16px; font-weight: bold; color: #2c3e50; margin-bottom: 20px; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 12px; letter-spacing: 2px; }
+         
+        .reply-scroll-area { 
+            max-height: 240px; overflow-y: hidden; font-size: 15px; color: #2c3e50; white-space: pre-wrap; position: relative; transition: max-height 0.5s ease;
+        }
+        .reply-scroll-area.expanded { max-height: 500px; overflow-y: auto; }
+
+        .fade-overlay {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 70px;
+            background: linear-gradient(transparent, rgba(255, 255, 255, 0.8)); pointer-events: none;
+        }
+        .reply-scroll-area.expanded .fade-overlay { display: none; }
+
+        .expand-btn {
+            display: block; width: 160px; margin: 20px auto 0; padding: 9px 0;
+            background: rgba(255, 255, 255, 0.4); border: 1px solid #7f8c8d; color: #2c3e50;
+            border-radius: 6px; text-align: center; font-size: 13px; cursor: pointer; transition: all 0.3s;
+        }
+        .expand-btn:hover { background: #4f5d73; color: #ffffff; border-color: #4f5d73; }
+
+        .letter-box { 
+            background: rgba(255, 255, 255, 0.65); 
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 30px; border-radius: 12px; 
+            box-shadow: 0 10px 30px rgba(44, 62, 80, 0.03); 
+            border: 1px solid rgba(255, 255, 255, 0.4); 
+        }
+        .box-title { font-size: 13px; letter-spacing: 2px; color: #5a738e; margin-bottom: 15px; border-bottom: 1px solid rgba(0,0,0,0.04); padding-bottom: 8px; }
+        .questions-list { display: flex; flex-direction: column; }
+         
+        .q-btn { 
+            background: none; border: none; padding: 18px 12px; text-align: left; font-size: 15px; color: #2c3e50; cursor: pointer; border-bottom: 1px dashed rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; width: 100%;
+            position: relative; z-index: 1; transition: color 0.3s, padding-left 0.3s;
+        }
+        .q-btn:last-child { border-bottom: none; }
+        .q-btn:hover { color: #16a085; padding-left: 20px; }
+        .arrow { font-size: 14px; color: #94a3b8; transition: transform 0.3s; flex-shrink: 0; margin-left: 10px; }
+        .q-btn:hover .arrow { transform: translateX(5px); color: #16a085; }
+         
+        footer { margin-top: 50px; font-size: 12px; color: #4f5d73; font-weight: 500; letter-spacing: 2px; text-align: center; text-shadow: 0 1px 2px rgba(255,255,255,0.8); position: relative; z-index: 10; }
+         
+        .reply-scroll-area::-webkit-scrollbar { width: 5px; }
+        .ripple-canvas-container::-webkit-scrollbar-track { background: transparent; }
+        .reply-scroll-area::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <div class="ripple-canvas-container" id="rippleContainer"></div>
+
+    <header>
+        <h1>柱子哥 · 生命关怀回信</h1>
+        <div class="subtitle">“扔向水面的石子，荡起渡人的涟漪”</div>
+    </header>
+    <div class="main-content">
+        <div class="video-container" id="videoWrapper"><video id="myPlayer" controls></video></div>
+        
+        <div class="part-switcher" id="partSwitcher">
+            <button class="part-btn active" id="part1Btn" onclick="switchPart(1)">上半集</button>
+            <button class="part-btn" id="part2Btn" onclick="switchPart(2)">下半集</button>
+        </div>
+        
+        <div class="text-reply-box" id="textReplyBox">
+            <div class="reply-title" id="replyTitle">回信正文</div>
+            <div class="reply-scroll-area" id="replyScrollArea">
+                <div id="replyContent">正在加载信件内容...</div>
+                <div class="fade-overlay" id="fadeOverlay"></div>
+            </div>
+            <button class="expand-btn" id="expandBtn" onclick="toggleExpand()">展开信笺全文</button>
+        </div>
+
+        <div class="letter-box">
+            <div class="box-title">请选择你想聆听与阅读的课题</div>
+            <div class="questions-list">
+                <button class="q-btn" onclick="changeContent(1, '回信正文', 'p10.png')">01 / 如何培养病人的求生欲？ <span class="arrow">→</span></button>
+                <button class="q-btn" onclick="changeContent(2, '回信正文', 'p10.png')">02 / 要不要告知病人病情？ <span class="arrow">→</span></button>
+                <button class="q-btn" onclick="changeContent(3, '回信正文', 'p10.png')">03 / 你愿不愿意和一个身体健康人生平平的人互换人生呢？ <span class="arrow">→</span></button>
+                <button class="q-btn" onclick="changeContent(4, '回信正文', 'p10.png')">04 / 如何更好地陪伴一个无法治愈的晚期病人，自己能做什么，以及如何应对病人糟糕的情绪和拒绝交流的状态？ <span class="arrow">→</span></button>
+            </div>
+        </div>
+    </div>
+    <footer>谨以此片，献给所有在爱与勇气中前行的人</footer>
+
+    <script>
+        const container = document.getElementById('rippleContainer');
+        let lastTime = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            const now = Date.now();
+            if (now - lastTime < 50) return; 
+            lastTime = now;
+
+            const ripple = document.createElement('div');
+            ripple.className = 'interactive-ripple';
+            ripple.style.left = `${e.clientX}px`;
+            ripple.style.top = `${e.clientY}px`;
+
+            container.appendChild(ripple);
+
+            setTimeout(() => { ripple.remove(); }, 1500);
+        });
+
+        let currentTopicId = 1;
+
+        function changeContent(topicId, title, bgSrc) {
+            currentTopicId = topicId; 
+
+            if (bgSrc) {
+                document.body.style.background = "url('" + bgSrc + "') no-repeat center center fixed";
+                document.body.style.backgroundSize = "cover";
+            }
+
+            const wrapper = document.getElementById('videoWrapper'); 
+            const player = document.getElementById('myPlayer'); 
+            const textBox = document.getElementById('textReplyBox'); 
+            const replyTitle = document.getElementById('replyTitle'); 
+            const replyContent = document.getElementById('replyContent');
+            const scrollArea = document.getElementById('replyScrollArea'); 
+            const expandBtn = document.getElementById('expandBtn');
+            const switcher = document.getElementById('partSwitcher');
+
+            player.src = 'video' + topicId + '_part1.mp4'; 
+            wrapper.style.display = 'block'; 
+            player.play(); 
+
+            switcher.style.display = 'flex';
+            document.getElementById('part1Btn').classList.add('active');
+            document.getElementById('part2Btn').classList.remove('active');
+
+            replyTitle.innerText = title; 
+            textBox.style.display = 'block';
+            
+            replyContent.innerText = "正在读取信件...";
+            
+            // 精准匹配你的文件名：video1.txt, video2.txt ...
+            fetch('video' + topicId + '.txt')
+                .then(response => {
+                    if (!response.ok) throw new Error('未找到对应的文本文件');
+                    return response.text();
+                })
+                .then(data => {
+                    replyContent.innerText = data; 
+                })
+                .catch(err => {
+                    replyContent.innerText = "【文本暂未发布】\n对应课题的文字稿正在全力编辑整理中，稍后会同步更新至此。";
+                });
+
+            scrollArea.classList.remove('expanded'); 
+            scrollArea.scrollTop = 0; 
+            expandBtn.innerText = "展开信笺全文"; 
+            expandBtn.style.display = "block";
+            
+            wrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function switchPart(partNumber) {
+            const player = document.getElementById('myPlayer');
+            const btn1 = document.getElementById('part1Btn');
+            const btn2 = document.getElementById('part2Btn');
+
+            player.src = 'video' + currentTopicId + '_part' + partNumber + '.mp4';
+            player.play();
+
+            if (partNumber === 1) {
+                btn1.classList.add('active');
+                btn2.classList.remove('active');
+            } else {
+                btn2.classList.add('active');
+                btn1.classList.remove('active');
+            }
+        }
+        
+        function toggleExpand() {
+            const scrollArea = document.getElementById('replyScrollArea'); const expandBtn = document.getElementById('expandBtn');
+            if (scrollArea.classList.contains('expanded')) {
+                scrollArea.classList.remove('expanded'); scrollArea.scrollTop = 0; expandBtn.innerText = "展开信笺全文";
+            } else {
+                scrollArea.classList.add('expanded'); expandBtn.innerText = "收起信笺";
+            }
+        }
+    </script>
+</body>
+</html>
